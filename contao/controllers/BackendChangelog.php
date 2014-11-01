@@ -65,6 +65,6 @@ class BackendChangelog extends \Backend
 		$objTemplate->charset = \Config::get('characterSet');
 
 		\Config::set('debugMode', false);
-		$objTemplate->output();
+		return $objTemplate->getResponse();
 	}
 }

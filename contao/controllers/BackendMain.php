@@ -132,7 +132,7 @@ class BackendMain extends \Backend
 			$this->Template->title = $this->Template->headline;
 		}
 
-		$this->output();
+		return $this->output();
 	}
 
 
@@ -272,6 +272,6 @@ class BackendMain extends \Backend
 			}
 		}
 
-		$this->Template->output();
+		return $this->Template->getResponse();
 	}
 }
