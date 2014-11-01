@@ -10,6 +10,10 @@
 
 namespace Contao;
 
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Routing\RouterInterface;
+
 
 /**
  * Provide methods to manage back end users.
@@ -219,15 +223,27 @@ class BackendUser extends \User
 			return;
 		}
 
-		$strRedirect = 'contao/';
+		$parameters = array();
 
 		// Redirect to the last page visited upon login
 		if (TL_SCRIPT == 'contao/main.php' || TL_SCRIPT == 'contao/preview.php')
 		{
-			$strRedirect .= '?referer=' . base64_encode(\Environment::get('request'));
+			$parameters['referer'] = base64_encode(\Environment::get('request'));
 		}
 
-		\Controller::redirect($strRedirect);
+		/** @var RouterInterface $router */
+		$router = System::getContainer()->get('router');
+
+		/** @var RequestStack $requestStack */
+		$requestStack = System::getContainer()->get('request_stack');
+
+		$redirect = $router->generate('contao_backend_login', $parameters);
+
+		$response = new RedirectResponse($redirect);
+		$response->send();
+
+		System::getKernel()->terminate($requestStack->getCurrentRequest(), $response);
+		exit;
 	}
 
 
