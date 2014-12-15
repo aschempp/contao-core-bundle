@@ -24,6 +24,12 @@ services:
         arguments:
             - '@request_stack'
 
+    contao.templating.layout:
+            class: Contao\CoreBundle\Templating\LayoutProvider
+            factory: [Contao\CoreBundle\Templating\LayoutProvider, createFromMasterRequest]
+            arguments:
+                - '@request_stack'
+
     # Event subscribers
     contao.subscriber.create_page_routes:
         class: Contao\CoreBundle\Routing\CreatePageRoutesSubscriber
