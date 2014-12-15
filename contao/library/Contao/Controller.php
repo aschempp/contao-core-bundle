@@ -10,6 +10,8 @@
 
 namespace Contao;
 
+use Contao\CoreBundle\Templating\StaticUrlProvider;
+
 
 /**
  * Abstract parent class for Controllers
@@ -1661,25 +1663,11 @@ abstract class Controller extends \System
 			global $objPage;
 		}
 
-		$arrConstants = array
-		(
-			'staticFiles'   => 'TL_FILES_URL',
-			'staticPlugins' => 'TL_ASSETS_URL'
-		);
+		/** @var StaticUrlProvider $staticUrls */
+		$staticUrls = \System::getContainer()->get('contao.templating.static_urls');
 
-		foreach ($arrConstants as $strKey=>$strConstant)
-		{
-			$url = ($objPage !== null) ? $objPage->$strKey : \Config::get($strKey);
-
-			if ($url == '' || \Config::get('debugMode'))
-			{
-				define($strConstant, '');
-			}
-			else
-			{
-				define($strConstant, '//' . preg_replace('@https?://@', '', $url) . \Environment::get('path') . '/');
-			}
-		}
+		define('TL_FILES_URL', $staticUrls->getProperty('staticFiles', $objPage));
+		define('TL_ASSETS_URL', $staticUrls->getProperty('staticPlugins', $objPage));
 
 		// Backwards compatibility
 		define('TL_SCRIPT_URL', TL_ASSETS_URL);
@@ -1693,22 +1681,14 @@ abstract class Controller extends \System
 	 * @param string $script The script path
 	 *
 	 * @return string The script path with the static URL
+	 * @deprecated Deprecated since 4.0, use StaticUrlProvider
 	 */
 	public static function addStaticUrlTo($script)
 	{
-		// The feature is not used
-		if (TL_ASSETS_URL == '')
-		{
-			return $script;
-		}
+		/** @var StaticUrlProvider $staticUrls */
+		$staticUrls = \System::getContainer()->get('contao.templating.static_urls');
 
-		// Absolut URLs
-		if (preg_match('@^https?://@', $script))
-		{
-			return $script;
-		}
-
-		return TL_ASSETS_URL . $script;
+		return $staticUrls->addStaticUrlToAsset($script);
 	}
 
 

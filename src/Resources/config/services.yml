@@ -19,6 +19,11 @@ services:
         tags:
             - { name: cmf_routing.provider, priority: 100 }
 
+    contao.templating.static_urls:
+        class: Contao\CoreBundle\Templating\StaticUrlProvider
+        arguments:
+            - '@request_stack'
+
     # Event subscribers
     contao.subscriber.create_page_routes:
         class: Contao\CoreBundle\Routing\CreatePageRoutesSubscriber
