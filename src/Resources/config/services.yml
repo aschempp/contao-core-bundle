@@ -26,7 +26,8 @@ services:
 
     contao.templating.layout:
             class: Contao\CoreBundle\Templating\LayoutProvider
-            factory: [Contao\CoreBundle\Templating\LayoutProvider, createFromMasterRequest]
+            factory_class: Contao\CoreBundle\Templating\LayoutProvider
+            factory_method: createFromMasterRequest
             arguments:
                 - '@request_stack'
 
