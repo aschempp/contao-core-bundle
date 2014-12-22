@@ -11,6 +11,8 @@
 
 namespace Contao\CoreBundle\Controller;
 
+use Contao\CoreBundle\Templating\LayoutProviderInterface;
+use Contao\CoreBundle\Templating\PageRenderer;
 use Contao\PageError403;
 use Contao\PageError404;
 use Contao\PageModel;
@@ -36,13 +38,20 @@ class FrontendController extends Controller
      */
     public function regularPageAction(Request $request)
     {
-        /** @var PageModel $page */
-        $page = $request->attributes->get('contentDocument');
+        /** @var LayoutProviderInterface $layout */
+        $layout = $this->get('contao.templating.layout');
 
-        /** @var PageRegular $controller */
-        $controller = new $GLOBALS['TL_PTY']['regular']();
+        /** @var PageRenderer $page */
+        $page = $this->get('contao.templating.page');
 
-        return $controller->getResponse($page);
+        $buffer = $page->generate($layout);
+
+        $response = new Response($buffer);
+
+        $response->headers->set('Vary', 'User-Agent', false);
+        $response->headers->set('Content-Type', 'text/html; charset=' . $layout->getCharacterSet());
+
+        return $response;
     }
 
     /**

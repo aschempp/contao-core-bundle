@@ -30,6 +30,11 @@ services:
             arguments:
                 - '@request_stack'
 
+    contao.templating.page:
+            class: Contao\CoreBundle\Templating\PageRenderer
+            arguments:
+                - '@contao.templating.static_urls'
+
     # Event subscribers
     contao.subscriber.create_page_routes:
         class: Contao\CoreBundle\Routing\CreatePageRoutesSubscriber
