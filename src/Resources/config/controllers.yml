@@ -6,3 +6,5 @@ services:
 
     contao.controllers.frontend:
         class: Contao\CoreBundle\Controller\FrontendController
+        calls:
+            - [setContainer, ["@service_container"]]
