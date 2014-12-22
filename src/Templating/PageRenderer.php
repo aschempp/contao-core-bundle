@@ -60,7 +60,9 @@ class PageRenderer
         $template->stylesheets = $this->generateStyleSheets();
         $template->head = $this->generateHeaderScripts();
 
-        return $template->parse();
+        $this->addKeywordsToTemplate($template);
+
+        return $this->parseTemplate($template);
     }
 
 
@@ -360,6 +362,55 @@ class PageRenderer
         $scripts .= $this->generateScriptTemplates($this->layout->getAnalyticsTemplates());
 
         return $scripts;
+    }
+
+
+    private function addKeywordsToTemplate(FrontendTemplate $template)
+    {
+        $template->keywords = '';
+        $arrKeywords = array_map('trim', explode(',', $GLOBALS['TL_KEYWORDS']));
+
+        // Add the meta keywords
+        if (strlen($arrKeywords[0]))
+        {
+            $template->keywords = str_replace(array("\n", "\r", '"'), array(' ' , '', ''), implode(', ', array_unique($arrKeywords)));
+        }
+    }
+
+
+    private function parseTemplate(FrontendTemplate $template)
+    {
+        // Parse the template
+        $buffer = str_replace(' & ', ' &amp; ', $template->parse());
+
+        // HOOK: add custom output filters
+        if (isset($GLOBALS['TL_HOOKS']['outputFrontendTemplate']) && is_array($GLOBALS['TL_HOOKS']['outputFrontendTemplate']))
+        {
+            foreach ($GLOBALS['TL_HOOKS']['outputFrontendTemplate'] as $callback)
+            {
+                $buffer = \System::importStatic($callback[0])->$callback[1]($buffer, $this->layout->getTemplateName());
+            }
+        }
+
+        // FIXME: add content to page cache, see FrontendTemplate:96
+
+        // Replace insert tags and then re-replace the request_token tag in case a form element has been loaded via insert tag
+        $buffer = \Controller::replaceInsertTags($buffer, false);
+        $buffer = str_replace(array('{{request_token}}', '[{]', '[}]'), array(REQUEST_TOKEN, '{{', '}}'), $buffer);
+        $buffer = \Controller::replaceDynamicScriptTags($buffer); // see #4203
+
+        // HOOK: allow to modify the compiled markup (see #4291)
+        if (isset($GLOBALS['TL_HOOKS']['modifyFrontendPage']) && is_array($GLOBALS['TL_HOOKS']['modifyFrontendPage']))
+        {
+            foreach ($GLOBALS['TL_HOOKS']['modifyFrontendPage'] as $callback)
+            {
+                $buffer = \System::importStatic($callback[0])->$callback[1]($buffer, $this->layout->getTemplateName());
+            }
+        }
+
+        // FIXME: HTML minification and debug bar should be an output event listener
+
+        return $buffer;
     }
 
 

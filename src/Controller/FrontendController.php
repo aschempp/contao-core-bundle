@@ -46,6 +46,12 @@ class FrontendController extends Controller
 
         $buffer = $page->generate($layout);
 
+        // Check whether all $_GET parameters have been used (see #4277)
+        // FIXME: I don't think it should be possible to disable this?
+        if (/*$blnCheckRequest && */\Input::hasUnusedGet()) {
+            throw new \UnusedArgumentsException();
+        }
+
         $response = new Response($buffer);
 
         $response->headers->set('Vary', 'User-Agent', false);
