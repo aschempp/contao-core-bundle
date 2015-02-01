@@ -21,12 +21,6 @@ define('TL_START', microtime(true));
 define('TL_REFERER_ID', substr(md5(TL_START), 0, 8));
 define('TL_ROOT', dirname($kernel->getRootDir()));
 
-// Define the TL_SCRIPT constant (backwards compatibility)
-if (!defined('TL_SCRIPT'))
-{
-	define('TL_SCRIPT', null);
-}
-
 // Define the login status constants in the back end (see #4099, #5279)
 if (TL_MODE == 'BE')
 {
