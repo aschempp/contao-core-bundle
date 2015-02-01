@@ -89,7 +89,11 @@ class FrontendController extends Controller
         /** @var PageError403 $controller */
         $controller = new $GLOBALS['TL_PTY']['error_403']();
 
-        return $controller->getResponse($page);
+        if (method_exists($controller, 'getResponse')) {
+            return $controller->getResponse($page);
+        }
+
+        return $controller->generate($page, true);
     }
 
     /**
@@ -107,7 +111,11 @@ class FrontendController extends Controller
         /** @var PageError404 $controller */
         $controller = new $GLOBALS['TL_PTY']['error_404']();
 
-        return $controller->getResponse($page);
+        if (method_exists($controller, 'getResponse')) {
+            return $controller->getResponse($page);
+        }
+
+        return $controller->generate($page, true);
     }
 
     /**
@@ -129,6 +137,6 @@ class FrontendController extends Controller
             return $controller->getResponse($page);
         }
 
-        $controller->generate($page, true);
+        return $controller->generate($page, true);
     }
 }
