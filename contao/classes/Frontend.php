@@ -497,7 +497,7 @@ abstract class Frontend extends \Controller
 	 *
 	 * @return boolean
 	 */
-	protected function getLoginStatus($strCookie)
+	public static function getLoginStatus($strCookie)
 	{
 		$hash = sha1(session_id() . (!\Config::get('disableIpCheck') ? \Environment::get('ip') : '') . $strCookie);
 
@@ -539,7 +539,7 @@ abstract class Frontend extends \Controller
 		$_SESSION['TL_USER_LOGGED_IN'] = false; // backwards compatibility
 
 		// Remove the cookie if it is invalid to enable loading cached pages
-		$this->setCookie($strCookie, $hash, (time() - 86400), null, null, false, true);
+		\System::setCookie($strCookie, $hash, (time() - 86400), null, null, false, true);
 
 		return false;
 	}

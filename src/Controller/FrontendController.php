@@ -29,6 +29,20 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class FrontendController extends Controller
 {
+
+    /**
+     * Initialize the object
+     */
+    public function __construct()
+    {
+        // Load the user object before calling the parent constructor
+        \FrontendUser::getInstance();
+
+        // Check whether a user is logged in
+        define('BE_USER_LOGGED_IN', \Frontend::getLoginStatus('BE_USER_AUTH'));
+        define('FE_USER_LOGGED_IN', \Frontend::getLoginStatus('FE_USER_AUTH'));
+    }
+
     /**
      * Handle regular page type.
      *
