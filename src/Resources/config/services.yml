@@ -43,6 +43,11 @@ services:
             - { name: kernel.event_subscriber }
 
     # Event listener
+    contao.listener.maintenance_mode:
+            class: Contao\CoreBundle\EventListener\MaintenanceModeListener
+            tags:
+                - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest, priority: 254 }
+
     contao.listener.output_from_cache:
         class: Contao\CoreBundle\EventListener\OutputFromCacheListener
         tags:
