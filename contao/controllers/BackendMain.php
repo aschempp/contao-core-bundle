@@ -10,6 +10,7 @@
 
 namespace Contao;
 
+use Symfony\Component\Routing\Router;
 
 /**
  * Main back end controller.
@@ -190,6 +191,11 @@ class BackendMain extends \Backend
 	 */
 	protected function output()
 	{
+		global $kernel;
+
+		/** @var Router $router */
+		$router = $kernel->getContainer()->get('router');
+
 		// Default headline
 		if ($this->Template->headline == '')
 		{
@@ -215,11 +221,13 @@ class BackendMain extends \Backend
 		$this->Template->title = specialchars($this->Template->title);
 		$this->Template->charset = \Config::get('characterSet');
 		$this->Template->account = $GLOBALS['TL_LANG']['MOD']['login'][1];
+		$this->Template->accountHref = $router->generate('contao_backend', ['do'=>'login', 'ref'=>TL_REFERER_ID]);
 		$this->Template->preview = $GLOBALS['TL_LANG']['MSC']['fePreview'];
 		$this->Template->previewTitle = specialchars($GLOBALS['TL_LANG']['MSC']['fePreviewTitle']);
 		$this->Template->pageOffset = \Input::cookie('BE_PAGE_OFFSET');
 		$this->Template->logout = $GLOBALS['TL_LANG']['MSC']['logoutBT'];
 		$this->Template->logoutTitle = specialchars($GLOBALS['TL_LANG']['MSC']['logoutBTTitle']);
+		$this->Template->logoutHref = $router->generate('contao_backend_login');
 		$this->Template->backendModules = $GLOBALS['TL_LANG']['MSC']['backendModules'];
 		$this->Template->username = $GLOBALS['TL_LANG']['MSC']['user'] . ' ' . $GLOBALS['TL_USERNAME'];
 		$this->Template->skipNavigation = specialchars($GLOBALS['TL_LANG']['MSC']['skipNavigation']);
@@ -228,6 +236,7 @@ class BackendMain extends \Backend
 		$this->Template->modules = $this->User->navigation();
 		$this->Template->home = $GLOBALS['TL_LANG']['MSC']['home'];
 		$this->Template->homeTitle = $GLOBALS['TL_LANG']['MSC']['homeTitle'];
+		$this->Template->homeHref = $router->generate('contao_backend');
 		$this->Template->backToTop = specialchars($GLOBALS['TL_LANG']['MSC']['backToTopTitle']);
 		$this->Template->expandNode = $GLOBALS['TL_LANG']['MSC']['expandNode'];
 		$this->Template->collapseNode = $GLOBALS['TL_LANG']['MSC']['collapseNode'];
