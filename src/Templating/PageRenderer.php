@@ -294,12 +294,6 @@ class PageRenderer
         // Add a placeholder for dynamic style sheets (see #4203)
         $headerTags .= '[[TL_CSS]]';
 
-        // Add the debug style sheet
-        // FIXME: use constructor injection for debug mode
-        if (Config::get('debugMode')) {
-            $headerTags .= Template::generateStyleTag($this->staticUrls->addStaticUrlToAsset('assets/contao/css/debug.min.css'), 'all') . "\n";
-        }
-
         // Always add conditional style sheets at the end
         $headerTags .= $this->getInternalUserCss($this->layout->getInternalStyleSheets());
 
@@ -408,7 +402,7 @@ class PageRenderer
             }
         }
 
-        // FIXME: HTML minification and debug bar should be an output event listener
+        // FIXME: HTML minification should be an output event listener
 
         return $buffer;
     }
