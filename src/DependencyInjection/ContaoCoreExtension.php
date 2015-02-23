@@ -28,7 +28,7 @@ class ContaoCoreExtension extends Extension implements PrependExtensionInterface
     /**
      * @var array
      */
-    protected $configFiles = [];
+    protected $configFiles = ['doctrine.yml'];
 
     /**
      * {@inheritdoc}
