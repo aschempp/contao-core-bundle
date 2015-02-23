@@ -1,21 +1,4 @@
 services:
-
-    # Static bundle routing
-    contao.routing.bundles:
-        class:     Contao\CoreBundle\Routing\BundlesLoader
-        arguments:
-            - '@service_container'
-        tags:
-            - { name: routing.loader }
-
-    # Static routes
-    contao.routing.loader:
-        class:     Contao\CoreBundle\Routing\ResourceLoader
-        arguments:
-            - '@@ContaoCoreBundle/Resources/config/routing.yml'
-        tags:
-            - { name: contao.routing.loader }
-
     # CMF routing
     contao.routing.candidates_strategy:
         class: Symfony\Cmf\Component\Routing\Candidates\Candidates
