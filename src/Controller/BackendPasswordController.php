@@ -13,6 +13,7 @@
 namespace Contao\CoreBundle\Controller;
 
 use Contao\BackendPassword;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Backend controller to show the password view.
@@ -26,7 +27,11 @@ class BackendPasswordController
      */
     public function runAction()
     {
+        ob_start();
+
         $controller = new BackendPassword();
-        return $controller->run();
+        $controller->run();
+
+        return new Response(ob_get_clean());
     }
 }

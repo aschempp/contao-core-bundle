@@ -13,6 +13,7 @@
 namespace Contao\CoreBundle\Controller;
 
 use Contao\BackendSwitch;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Backend controller to show the switch view.
@@ -26,7 +27,11 @@ class BackendSwitchController
      */
     public function runAction()
     {
+        ob_start();
+
         $controller = new BackendSwitch();
-        return $controller->run();
+        $controller->run();
+
+        return new Response(ob_get_clean());
     }
 }

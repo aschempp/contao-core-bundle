@@ -102,6 +102,6 @@ class BackendIndex extends \Backend
 		$objTemplate->disableCron = \Config::get('disableCron');
 		$objTemplate->default = $GLOBALS['TL_LANG']['MSC']['default'];
 
-		return $objTemplate->getResponse();
+		$objTemplate->output();
 	}
 }

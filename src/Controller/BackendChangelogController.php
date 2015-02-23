@@ -13,6 +13,7 @@
 namespace Contao\CoreBundle\Controller;
 
 use Contao\BackendChangelog;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Backend controller to show the changelog view.
@@ -26,7 +27,11 @@ class BackendChangelogController
      */
     public function runAction()
     {
+        ob_start();
+
         $controller = new BackendChangelog();
-        return $controller->run();
+        $controller->run();
+
+        return new Response(ob_get_clean());
     }
 }

@@ -281,6 +281,6 @@ class BackendMain extends \Backend
 			}
 		}
 
-		return $this->Template->getResponse();
+		$this->Template->output();
 	}
 }

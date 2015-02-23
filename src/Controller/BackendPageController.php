@@ -13,6 +13,7 @@
 namespace Contao\CoreBundle\Controller;
 
 use Contao\BackendPage;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Backend controller to show the page selection view.
@@ -26,7 +27,11 @@ class BackendPageController
      */
     public function runAction()
     {
+        ob_start();
+
         $controller = new BackendPage();
-        return $controller->run();
+        $controller->run();
+
+        return new Response(ob_get_clean());
     }
 }

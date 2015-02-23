@@ -152,6 +152,6 @@ class BackendFile extends \Backend
 		}
 
 		\Config::set('debugMode', false);
-		return $objTemplate->getResponse();
+		$objTemplate->output();
 	}
 }

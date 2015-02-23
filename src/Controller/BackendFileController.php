@@ -13,6 +13,7 @@
 namespace Contao\CoreBundle\Controller;
 
 use Contao\BackendFile;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Backend controller to show the file selection view.
@@ -26,7 +27,11 @@ class BackendFileController
      */
     public function runAction()
     {
+        ob_start();
+
         $controller = new BackendFile();
-        return $controller->run();
+        $controller->run();
+
+        return new Response(ob_get_clean());
     }
 }

@@ -13,6 +13,7 @@
 namespace Contao\CoreBundle\Controller;
 
 use Contao\BackendPreview;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Backend controller to show the preview view.
@@ -26,7 +27,11 @@ class BackendPreviewController
      */
     public function runAction()
     {
+        ob_start();
+
         $controller = new BackendPreview();
-        return $controller->run();
+        $controller->run();
+
+        return new Response(ob_get_clean());
     }
 }

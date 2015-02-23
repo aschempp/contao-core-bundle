@@ -13,6 +13,7 @@
 namespace Contao\CoreBundle\Controller;
 
 use Contao\BackendMain;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Backend controller to show the main view.
@@ -26,7 +27,11 @@ class BackendMainController
      */
     public function runAction()
     {
+        ob_start();
+
         $controller = new BackendMain();
-        return $controller->run();
+        $controller->run();
+
+        return new Response(ob_get_clean());
     }
 }

@@ -13,6 +13,7 @@
 namespace Contao\CoreBundle\Controller;
 
 use Contao\BackendHelp;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Backend controller to show the help view.
@@ -26,7 +27,11 @@ class BackendHelpController
      */
     public function runAction()
     {
+        ob_start();
+
         $controller = new BackendHelp();
-        return $controller->run();
+        $controller->run();
+
+        return new Response(ob_get_clean());
     }
 }

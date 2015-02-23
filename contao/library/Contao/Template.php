@@ -273,7 +273,8 @@ abstract class Template extends \Controller
 		echo $this->strBuffer;
 
 		// Flush the output buffers (see #6962)
-		$this->flushAllData();
+        // TODO: implement this using Symfony kernel.terminate event
+		//$this->flushAllData();
 
 		// HOOK: add custom logic
 		if (isset($GLOBALS['TL_HOOKS']['postFlushData']) && is_array($GLOBALS['TL_HOOKS']['postFlushData']))

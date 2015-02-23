@@ -145,6 +145,6 @@ class BackendConfirm extends \Backend
 		$objTemplate->title = specialchars($GLOBALS['TL_LANG']['MSC']['invalidTokenUrl']);
 		$objTemplate->charset = \Config::get('characterSet');
 
-		return $objTemplate->getResponse();
+		$objTemplate->output();
 	}
 }

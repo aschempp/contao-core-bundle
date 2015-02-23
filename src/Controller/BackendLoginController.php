@@ -13,6 +13,7 @@
 namespace Contao\CoreBundle\Controller;
 
 use Contao\BackendIndex;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Backend controller to show login view.
@@ -26,7 +27,11 @@ class BackendLoginController
      */
     public function runAction()
     {
+        ob_start();
+
         $controller = new BackendIndex();
-        return $controller->run();
+        $controller->run();
+
+        return new Response(ob_get_clean());
     }
 }
