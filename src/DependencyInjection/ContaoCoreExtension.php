@@ -10,12 +10,12 @@
 
 namespace Contao\CoreBundle\DependencyInjection;
 
-use Contao\CoreBundle\Config\PrependsLoader\YamlFilePrependsLoader;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Adds the bundle services to the container.
@@ -29,12 +29,15 @@ class ContaoCoreExtension extends Extension implements PrependExtensionInterface
      */
     public function prepend(ContainerBuilder $container)
     {
-        $loader = new YamlFilePrependsLoader(
-            $container,
-            new FileLocator(__DIR__ . '/../Resources/config')
+        $configValues = Yaml::parse(
+            file_get_contents(
+                __DIR__ . '/../Resources/config/prepends.yml'
+            )
         );
 
-        $loader->load('prepends.yml');
+        foreach ($configValues as $bundleName => $bundleConfigValues) {
+            $container->prependExtensionConfig($bundleName, $bundleConfigValues);
+        }
     }
 
     /**
