@@ -116,6 +116,7 @@ function standardize($strString, $blnPreserveUppercase=false)
 
 	$strString = html_entity_decode($strString, ENT_QUOTES, $GLOBALS['TL_CONFIG']['characterSet']);
 	$strString = strip_insert_tags($strString);
+	$strString = str_replace(['ä', 'Ä', 'ö', 'Ö', 'ü', 'Ü'], ['ae', 'AE', 'oe', 'OE', 'ue', 'UE'], $strString);
 	$strString = Patchwork\Utf8::toAscii($strString);
 	$strString = preg_replace($arrSearch, $arrReplace, $strString);
 
