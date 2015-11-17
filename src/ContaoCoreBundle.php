@@ -13,6 +13,7 @@ namespace Contao\CoreBundle;
 use Contao\CoreBundle\DependencyInjection\Compiler\AddPackagesPass;
 use Contao\CoreBundle\DependencyInjection\Compiler\AddResourcesPathsPass;
 use Contao\CoreBundle\DependencyInjection\ContaoCoreExtension;
+use Doctrine\DBAL\Types\Type;
 use Patchwork\Utf8\Bootup;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Scope;
@@ -46,6 +47,8 @@ class ContaoCoreBundle extends Bundle
 
         $this->container->addScope(new Scope(self::SCOPE_BACKEND, 'request'));
         $this->container->addScope(new Scope(self::SCOPE_FRONTEND, 'request'));
+
+        Type::addType('uuid', 'Contao\CoreBundle\Doctrine\DBAL\Types\UuidType');
     }
 
     /**
