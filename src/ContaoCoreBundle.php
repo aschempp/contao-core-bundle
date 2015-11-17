@@ -48,7 +48,9 @@ class ContaoCoreBundle extends Bundle
         $this->container->addScope(new Scope(self::SCOPE_BACKEND, 'request'));
         $this->container->addScope(new Scope(self::SCOPE_FRONTEND, 'request'));
 
-        Type::addType('uuid', 'Contao\CoreBundle\Doctrine\DBAL\Types\UuidType');
+        if (!Type::hasType('uuid')) {
+            Type::addType('uuid', 'Contao\CoreBundle\Doctrine\DBAL\Types\UuidType');
+        }
     }
 
     /**
