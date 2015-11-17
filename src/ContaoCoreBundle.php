@@ -14,6 +14,7 @@ use Contao\CoreBundle\DependencyInjection\Compiler\AddPackagesPass;
 use Contao\CoreBundle\DependencyInjection\Compiler\AddResourcesPathsPass;
 use Contao\CoreBundle\DependencyInjection\Compiler\AddSessionBagsPass;
 use Contao\CoreBundle\DependencyInjection\ContaoCoreExtension;
+use Doctrine\DBAL\Types\Type;
 use Patchwork\Utf8\Bootup;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
@@ -43,6 +44,8 @@ class ContaoCoreBundle extends Bundle
     public function boot()
     {
         Bootup::initAll();
+
+        Type::addType('uuid', 'Contao\CoreBundle\Doctrine\DBAL\Types\UuidType');
     }
 
     /**
