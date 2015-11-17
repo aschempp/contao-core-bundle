@@ -45,7 +45,9 @@ class ContaoCoreBundle extends Bundle
     {
         Bootup::initAll();
 
-        Type::addType('uuid', 'Contao\CoreBundle\Doctrine\DBAL\Types\UuidType');
+        if (!Type::hasType('uuid')) {
+            Type::addType('uuid', 'Contao\CoreBundle\Doctrine\DBAL\Types\UuidType');
+        }
     }
 
     /**
