@@ -73,6 +73,12 @@ services:
         tags:
             - { name: monolog.processor }
 
+    contao.orm.model_mapping_driver:
+        class: "Contao\CoreBundle\Doctrine\Mapping\ContaoModelDriver"
+        arguments:
+            - "@contao.framework"
+            - "@database_connection"
+
     contao.referer_id.manager:
          class: Symfony\Component\Security\Csrf\CsrfTokenManager
          public: false

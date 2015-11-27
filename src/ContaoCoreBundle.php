@@ -13,6 +13,7 @@ namespace Contao\CoreBundle;
 use Contao\CoreBundle\DependencyInjection\Compiler\AddPackagesPass;
 use Contao\CoreBundle\DependencyInjection\Compiler\AddResourcesPathsPass;
 use Contao\CoreBundle\DependencyInjection\Compiler\AddSessionBagsPass;
+use Contao\CoreBundle\DependencyInjection\Compiler\DoctrineMappingDriverPass;
 use Contao\CoreBundle\DependencyInjection\ContaoCoreExtension;
 use Doctrine\DBAL\Types\Type;
 use Patchwork\Utf8\Bootup;
@@ -63,5 +64,6 @@ class ContaoCoreBundle extends Bundle
 
         $container->addCompilerPass(new AddSessionBagsPass());
         $container->addCompilerPass(new AddResourcesPathsPass());
+        $container->addCompilerPass(new DoctrineMappingDriverPass());
     }
 }
