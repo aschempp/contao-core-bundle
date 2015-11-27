@@ -15,6 +15,7 @@ use Contao\CoreBundle\DependencyInjection\Compiler\AddResourcesPathsPass;
 use Contao\CoreBundle\DependencyInjection\Compiler\AddSessionBagsPass;
 use Contao\CoreBundle\DependencyInjection\Compiler\DoctrineMappingDriverPass;
 use Contao\CoreBundle\DependencyInjection\ContaoCoreExtension;
+use Contao\CoreBundle\Doctrine\Mapping\ContaoModelRuntimeReflectionService;
 use Doctrine\DBAL\Types\Type;
 use Patchwork\Utf8\Bootup;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -49,6 +50,14 @@ class ContaoCoreBundle extends Bundle
         if (!Type::hasType('uuid')) {
             Type::addType('uuid', 'Contao\CoreBundle\Doctrine\DBAL\Types\UuidType');
         }
+
+        $this->container
+            ->get('doctrine.orm.entity_manager')
+            ->getMetadataFactory()
+            ->setReflectionService(
+                new ContaoModelRuntimeReflectionService($this->container->get('contao.framework'))
+            )
+        ;
     }
 
     /**
