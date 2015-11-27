@@ -27,6 +27,14 @@ services:
         tags:
             - { name: kernel.cache_warmer }
 
+    contao.cache.warm_doctrine_mapping:
+        class: Contao\CoreBundle\Cache\DoctrineMappingCacheWarmer
+        arguments:
+            - "@contao.framework"
+            - "@doctrine"
+        tags:
+            - { name: kernel.cache_warmer, priority: 20 }
+
     contao.data_collector:
         class: Contao\CoreBundle\DataCollector\ContaoDataCollector
         public: false
