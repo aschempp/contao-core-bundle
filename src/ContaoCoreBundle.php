@@ -14,6 +14,7 @@ use Contao\CoreBundle\DependencyInjection\Compiler\AddPackagesPass;
 use Contao\CoreBundle\DependencyInjection\Compiler\AddResourcesPathsPass;
 use Contao\CoreBundle\DependencyInjection\Compiler\DoctrineMappingDriverPass;
 use Contao\CoreBundle\DependencyInjection\ContaoCoreExtension;
+use Contao\CoreBundle\Doctrine\Mapping\ContaoModelRuntimeReflectionService;
 use Patchwork\Utf8\Bootup;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Scope;
@@ -47,6 +48,14 @@ class ContaoCoreBundle extends Bundle
 
         $this->container->addScope(new Scope(self::SCOPE_BACKEND, 'request'));
         $this->container->addScope(new Scope(self::SCOPE_FRONTEND, 'request'));
+
+        $this->container
+            ->get('doctrine.orm.entity_manager')
+            ->getMetadataFactory()
+            ->setReflectionService(
+                new ContaoModelRuntimeReflectionService($this->container->get('contao.framework'))
+            )
+        ;
     }
 
     /**
