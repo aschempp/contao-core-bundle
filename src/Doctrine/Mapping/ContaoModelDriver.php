@@ -52,8 +52,6 @@ class ContaoModelDriver implements MappingDriver
     {
         $this->loadMappingFromDatabase();
 
-        $className = str_replace('Contao\\', '', $className);
-
         $this->driver->loadMetadataForClass($className, $metadata);
     }
 
@@ -101,11 +99,11 @@ class ContaoModelDriver implements MappingDriver
             /** @var Model $class */
             $class = Model::getClassFromTable($tableName);
 
-            if (!class_exists($class)) {
+            if (!class_exists($class) || !is_a($class, '\Contao\Model', true)) {
                 continue;
             }
 
-            $this->driver->setClassNameForTable($tableName, $class);
+            $this->driver->setClassNameForTable($tableName, get_class(new $class));
 
             $tables[$tableName]  = $schemaManager->listTableDetails($tableName);
         }
