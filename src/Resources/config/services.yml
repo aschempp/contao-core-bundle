@@ -26,6 +26,12 @@ services:
         calls:
             - ["setContainer", ["@service_container"]]
 
+    contao.orm.model_mapping_driver:
+        class: "Contao\CoreBundle\Doctrine\Mapping\ContaoModelDriver"
+        arguments:
+            - "@contao.framework"
+            - "@database_connection"
+
     contao.referer_id.manager:
          class: "%security.csrf.token_manager.class%"
          public: false
