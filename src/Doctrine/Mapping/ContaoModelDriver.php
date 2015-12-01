@@ -7,6 +7,7 @@ use Contao\Model;
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Schema\Table;
 use Doctrine\ORM\Mapping\Driver\DatabaseDriver;
 
 
@@ -21,6 +22,11 @@ class ContaoModelDriver implements MappingDriver
      * @var Connection
      */
     private $connection;
+
+    /**
+     * @var Table[]
+     */
+    private $tables;
 
     /**
      * @var DatabaseDriver
@@ -90,7 +96,7 @@ class ContaoModelDriver implements MappingDriver
         $this->framework->initialize();
 
         $schemaManager = $this->connection->getSchemaManager();
-        $tables        = [];
+        $this->tables  = [];
 
         $this->driver  = new DatabaseDriver($schemaManager);
         $this->driver->setNamespace('');
@@ -105,9 +111,9 @@ class ContaoModelDriver implements MappingDriver
 
             $this->driver->setClassNameForTable($tableName, get_class(new $class));
 
-            $tables[$tableName]  = $schemaManager->listTableDetails($tableName);
+            $this->tables[$tableName] = $schemaManager->listTableDetails($tableName);
         }
 
-        $this->driver->setTables($tables, []);
+        $this->driver->setTables($this->tables, []);
     }
 }
