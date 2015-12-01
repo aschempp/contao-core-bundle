@@ -59,6 +59,8 @@ class ContaoModelDriver implements MappingDriver
         $this->loadMappingFromDatabase();
 
         $this->driver->loadMetadataForClass($className, $metadata);
+
+        $metadata->markReadOnly();
     }
 
     /**
