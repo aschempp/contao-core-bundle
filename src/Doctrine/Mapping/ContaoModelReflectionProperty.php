@@ -20,7 +20,7 @@ class ContaoModelReflectionProperty extends \ReflectionProperty
 
     public function setValue($object, $value = null)
     {
-        $object->__set($this->propertyName, $value);
+        $object->mergeRow([$this->propertyName => $value]);
     }
 
     public function isPublic()
