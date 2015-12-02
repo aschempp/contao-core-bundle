@@ -3,11 +3,14 @@
 namespace Contao\CoreBundle\Doctrine\Mapping;
 
 use Contao\CoreBundle\Framework\ContaoFrameworkInterface;
+use Contao\DcaExtractor;
+use Contao\DcaLoader;
 use Contao\Model;
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Table;
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\Mapping\Driver\DatabaseDriver;
 
 
@@ -61,6 +64,8 @@ class ContaoModelDriver implements MappingDriver
         $this->driver->loadMetadataForClass($className, $metadata);
 
         $metadata->markReadOnly();
+
+        $this->loadRelationsFromDca($metadata);
     }
 
     /**
@@ -104,18 +109,103 @@ class ContaoModelDriver implements MappingDriver
         $this->driver->setNamespace('');
 
         foreach ($schemaManager->listTableNames() as $tableName) {
-            /** @var Model $class */
-            $class = Model::getClassFromTable($tableName);
+            $class = $this->getModelNameForTable($tableName);
 
-            if (!class_exists($class) || !is_a($class, '\Contao\Model', true)) {
+            if (null === $class || !is_a($class, '\Contao\Model', true)) {
                 continue;
             }
 
-            $this->driver->setClassNameForTable($tableName, get_class(new $class));
+            $this->driver->setClassNameForTable($tableName, $class);
 
             $this->tables[$tableName] = $schemaManager->listTableDetails($tableName);
         }
 
         $this->driver->setTables($this->tables, []);
+    }
+
+    private function loadRelationsFromDca(ClassMetadataInfo $metadata)
+    {
+        $tableName = $metadata->getTableName();
+        $dca       = $GLOBALS['TL_DCA'][$tableName];
+        $relations = DcaExtractor::getInstance($tableName)->getRelations();
+
+        if ($dca['config']['ptable']
+            && !isset($relations['pid'])
+            && ($targetEntity = $this->getModelNameForTable($dca['config']['ptable'])) !== null
+        ) {
+            // $tableName.pid hat ManyToOne relation auf $ptable.id
+
+            $metadata->mapManyToOne([
+                'fieldName'    => 'pid__relation__',
+                'joinColumns'  => [[
+                    'name'                 => 'pid',
+                    'unique'               => false,
+                    'nullable'             => false,
+                    'onDelete'             => null,
+                    'columnDefinition'     => null,
+                    'referencedColumnName' => 'id',
+                ]],
+                'cascade'      => [],
+                'inversedBy'   => $dca['config']['ptable'],
+                'targetEntity' => $targetEntity,
+                'fetch'        => ClassMetadataInfo::FETCH_LAZY
+            ]);
+        }
+
+        if (is_array($dca['config']['ctable'])) {
+            foreach ($dca['config']['ctable'] as $ctable) {
+                // $tableName.id hat OneToMany auf $ctable.pid
+
+                if (($targetEntity = $this->getModelNameForTable($ctable)) !== null) {
+                    $metadata->mapOneToMany([
+                        'fieldName'     => 'id__relation__' . $ctable,
+                        'mappedBy'      => 'pid',
+                        'targetEntity'  => $targetEntity,
+                        'cascade'       => [],
+                        'indexBy'       => null,
+                        'orphanRemoval' => false,
+                        'fetch'         => ClassMetadataInfo::FETCH_LAZY,
+                    ]);
+                }
+            }
+        }
+
+        foreach ($relations as $field => $relation) {
+            // $tableName.$field has $relation['type'] relation to $relation['table'][$relation['field']]
+
+            if (($relation['type'] == 'hasOne' || $relation['type'] == 'belongsTo')
+                && ($targetEntity = $this->getModelNameForTable($relation['table'])) !== null
+            ) {
+                $metadata->mapManyToOne([
+                    'fieldName'    => $field . '__relation__',
+                    'joinColumns'  => [[
+                        'name'                 => $field,
+                        'unique'               => false,
+                        'nullable'             => false,
+                        'onDelete'             => null,
+                        'columnDefinition'     => null,
+                        'referencedColumnName' => $relation['field'],
+                    ]],
+                    'cascade'      => [],
+                    'inversedBy'   => $relation['table'],
+                    'targetEntity' => $targetEntity,
+                    'fetch'        => ClassMetadataInfo::FETCH_LAZY
+                ]);
+            }
+        }
+    }
+
+
+    private function getModelNameForTable($tableName)
+    {
+        /** @var \Contao\Model $adapter */
+        $adapter = $this->framework->getAdapter('Contao\Model');
+        $class   = $adapter->getClassFromTable($tableName);
+
+        if (!class_exists($class)) {
+            return null;
+        }
+
+        return get_class(new $class);
     }
 }
