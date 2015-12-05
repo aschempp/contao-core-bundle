@@ -72,6 +72,12 @@ abstract class Model
 	protected static $arrClassNames = array();
 
 	/**
+	 * Fully qualified class names
+	 * @var array
+	 */
+	protected static $arrFQClassNames = array();
+
+	/**
 	 * Data
 	 * @var array
 	 */
@@ -1185,8 +1191,28 @@ abstract class Model
 	 *
 	 * @return string The model class name
 	 */
-	public static function getClassFromTable($strTable)
+	public static function getClassFromTable($strTable, $fqcn = false)
 	{
+		if ($fqcn)
+		{
+			if (isset(static::$arrFQClassNames[$strTable]))
+			{
+				return static::$arrFQClassNames[$strTable];
+			}
+
+			$strClass = static::getClassFromTable($strTable);
+
+			try {
+				$objRefl = new \ReflectionClass($strClass);
+				static::$arrFQClassNames[$strTable] = $objRefl->name;
+
+			} catch (\ReflectionException $e) {
+				static::$arrFQClassNames[$strTable] = $strClass;
+			}
+
+			return static::$arrFQClassNames[$strTable];
+		}
+
 		if (isset(static::$arrClassNames[$strTable]))
 		{
 			return static::$arrClassNames[$strTable];

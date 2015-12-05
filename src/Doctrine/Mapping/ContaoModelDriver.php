@@ -200,12 +200,12 @@ class ContaoModelDriver implements MappingDriver
     {
         /** @var \Contao\Model $adapter */
         $adapter = $this->framework->getAdapter('Contao\Model');
-        $class   = $adapter->getClassFromTable($tableName);
+        $class   = $adapter->getClassFromTable($tableName, true);
 
         if (!class_exists($class)) {
             return null;
         }
 
-        return get_class(new $class);
+        return $class;
     }
 }
