@@ -136,7 +136,7 @@ class ContaoModelDriver implements MappingDriver
             // $tableName.pid hat ManyToOne relation auf $ptable.id
 
             $metadata->mapManyToOne([
-                'fieldName'    => 'pid__relation__',
+                'fieldName'    => 'relation(ptable)',
                 'joinColumns'  => [[
                     'name'                 => 'pid',
                     'unique'               => false,
@@ -158,7 +158,7 @@ class ContaoModelDriver implements MappingDriver
 
                 if (($targetEntity = $this->getModelNameForTable($ctable)) !== null) {
                     $metadata->mapOneToMany([
-                        'fieldName'     => 'id__relation__' . $ctable,
+                        'fieldName'     => "relation(ctable=$ctable)",
                         'mappedBy'      => 'pid',
                         'targetEntity'  => $targetEntity,
                         'cascade'       => [],
@@ -177,7 +177,7 @@ class ContaoModelDriver implements MappingDriver
                 && ($targetEntity = $this->getModelNameForTable($relation['table'])) !== null
             ) {
                 $metadata->mapManyToOne([
-                    'fieldName'    => $field . '__relation__',
+                    'fieldName'    => "relation(field=$field)",
                     'joinColumns'  => [[
                         'name'                 => $field,
                         'unique'               => false,
