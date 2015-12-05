@@ -4,23 +4,31 @@ namespace Contao\CoreBundle\Doctrine\Mapping;
 
 class ContaoModelReflectionProperty extends \ReflectionProperty
 {
-    private $className;
-    private $propertyName;
+    private $key;
 
     public function __construct($class, $name)
     {
-        $this->className = $class;
-        $this->propertyName = $name;
+        $this->key = $name;
+
+        parent::__construct($class, 'arrData');
+
+        $this->setAccessible(true);
     }
 
     public function getValue($object = null)
     {
-        return $object->__get($this->propertyName);
+        $data = parent::getValue($object);
+
+        return $data[$this->key];
     }
 
     public function setValue($object, $value = null)
     {
-        $object->mergeRow([$this->propertyName => $value]);
+        $data = parent::getValue($object);
+
+        $data[$this->key] = $value;
+
+        parent::setValue($object, $data);
     }
 
     public function isPublic()
@@ -48,23 +56,13 @@ class ContaoModelReflectionProperty extends \ReflectionProperty
         return false;
     }
 
-    public function getDeclaringClass()
-    {
-        return $this->className;
-    }
-
     public function getName()
     {
-        return $this->propertyName;
+        return $this->key;
     }
 
     public function getDocComment()
     {
         return '';
-    }
-
-    public function setAccessible($accessible)
-    {
-        // does nothing
     }
 }
