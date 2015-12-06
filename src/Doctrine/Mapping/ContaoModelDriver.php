@@ -7,6 +7,7 @@ use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Table;
+use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\Mapping\Driver\DatabaseDriver;
 
@@ -122,6 +123,11 @@ class ContaoModelDriver implements MappingDriver
             $this->driver->setClassNameForTable($tableName, $class);
 
             $this->tables[$tableName] = $schemaManager->listTableDetails($tableName);
+
+            foreach ($schemaManager->listTableColumns($tableName) as $column) {
+                $name = $column->getName();
+                $this->driver->setFieldNameForColumn($tableName, $name, $name);
+            }
         }
 
         $this->driver->setTables($this->tables, []);
@@ -204,6 +210,44 @@ class ContaoModelDriver implements MappingDriver
                     $relation['table'],
                     $targetEntity
                 );
+            }
+        }
+
+        if (is_array($dca['fields'])) {
+            foreach ($dca['fields'] as $field => $config) {
+                if (Type::BLOB === $metadata->fieldMappings[$field]['type']) {
+                    if ($config['eval']['multiple'] && !isset($config['eval']['csv'])) {
+                        $metadata->fieldMappings[$field]['type'] = Type::TARRAY;
+                    } elseif ($config['eval']['multiple'] && ',' === $config['eval']['csv']) {
+                        $metadata->fieldMappings[$field]['type'] = Type::SIMPLE_ARRAY;
+                    } else {
+                        $metadata->fieldMappings[$field]['type'] = Type::TEXT;
+                    }
+                }
+
+                if ('fileTree' === $config['inputType']) {
+                    $metadata->fieldMappings[$field]['type'] = ($config['eval']['multiple'] ? 'uuid_array' : 'uuid');
+                    $column = $this->tables[$tableName]->getColumn($field);
+
+                    $fieldMapping = array(
+                        'columnName' => $column->getName(),
+                        'nullable'   => (!$column->getNotNull()),
+                        'length'     => $column->getLength(),
+                        'options'    => ['fixed' => $column->getFixed()],
+                    );
+
+                    // Comment
+                    if (($comment = $column->getComment()) !== null) {
+                        $fieldMapping['options']['comment'] = $comment;
+                    }
+
+                    // Default
+                    if (($default = $column->getDefault()) !== null) {
+                        $fieldMapping['options']['default'] = $default;
+                    }
+
+                    $metadata->setAttributeOverride($field, $fieldMapping);
+                }
             }
         }
     }
