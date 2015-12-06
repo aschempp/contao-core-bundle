@@ -132,10 +132,18 @@ class ContaoModelDriver implements MappingDriver
      */
     private function loadRelationsFromDca(ClassMetadataInfo $metadata)
     {
-        /** @var \Contao\DcaExtractor $extractor */
         $tableName = $metadata->getTableName();
-        $dca       = $GLOBALS['TL_DCA'][$tableName];
+
+        /**
+         * @var \Contao\DcaExtractor $extractor
+         * @var \Contao\DcaLoader    $loader
+         */
         $extractor = $this->framework->getAdapter('Contao\DcaExtractor');
+        $loader    = $this->framework->createInstance('Contao\DcaLoader', [$tableName]);
+
+        $loader->load();
+
+        $dca       = $GLOBALS['TL_DCA'][$tableName];
         $relations = $extractor->getInstance($tableName)->getRelations();
 
         if ($dca['config']['ptable']
