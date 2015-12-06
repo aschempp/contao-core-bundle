@@ -3,9 +3,6 @@
 namespace Contao\CoreBundle\Doctrine\Mapping;
 
 use Contao\CoreBundle\Framework\ContaoFrameworkInterface;
-use Contao\DcaExtractor;
-use Contao\DcaLoader;
-use Contao\Model;
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\DBAL\Connection;
@@ -135,9 +132,11 @@ class ContaoModelDriver implements MappingDriver
      */
     private function loadRelationsFromDca(ClassMetadataInfo $metadata)
     {
+        /** @var \Contao\DcaExtractor $extractor */
         $tableName = $metadata->getTableName();
         $dca       = $GLOBALS['TL_DCA'][$tableName];
-        $relations = DcaExtractor::getInstance($tableName)->getRelations();
+        $extractor = $this->framework->getAdapter('Contao\DcaExtractor');
+        $relations = $extractor->getInstance($tableName)->getRelations();
 
         if ($dca['config']['ptable']
             && !isset($relations['pid'])
