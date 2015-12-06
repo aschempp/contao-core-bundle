@@ -13,12 +13,19 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
  */
 class UuidType extends BinaryType
 {
+    const UUID = 'uuid';
+
     /**
-     * @return string
+     * @inheritDoc
      */
-    public function getName()
+    public function getSQLDeclaration(array $fieldDeclaration, AbstractPlatform $platform)
     {
-        return 'uuid';
+        if (!$fieldDeclaration['length']) {
+            $fieldDeclaration['length'] = 16;
+            $fieldDeclaration['fixed']  = true;
+        }
+
+        return parent::getSQLDeclaration($fieldDeclaration, $platform);
     }
 
     /**
@@ -59,5 +66,13 @@ class UuidType extends BinaryType
     public function requiresSQLCommentHint(AbstractPlatform $platform)
     {
         return true;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName()
+    {
+        return self::UUID;
     }
 }
