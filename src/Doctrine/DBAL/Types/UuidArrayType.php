@@ -13,13 +13,7 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
  */
 class UuidArrayType extends BlobType
 {
-    /**
-     * @return string
-     */
-    public function getName()
-    {
-        return 'uuid_array';
-    }
+    const UUID_ARRAY = 'uuid_array';
 
     /**
      * Converts the binary UUID to string representation.
@@ -73,5 +67,13 @@ class UuidArrayType extends BlobType
     public function requiresSQLCommentHint(AbstractPlatform $platform)
     {
         return true;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName()
+    {
+        return self::UUID_ARRAY;
     }
 }
