@@ -683,17 +683,26 @@ abstract class Model
 
 		$arrRelation = $this->arrRelations[$strKey];
 
-		/** @var static $strClass */
-		$strClass = static::getClassFromTable($arrRelation['table']);
-
 		// Load the related record(s)
 		if ($arrRelation['type'] == 'hasOne' || $arrRelation['type'] == 'belongsTo')
 		{
-			$objModel = $strClass::findOneBy($arrRelation['field'], $this->$strKey, $arrOptions);
+			$objModel = $this->arrData['relation(field=' . $strKey . ')'];
+
+			if ($objModel instanceof Proxy) {
+				try {
+					$objModel->__load();
+				} catch (EntityNotFoundException $e) {
+					$objModel = null;
+				}
+			}
+
 			$this->arrRelated[$strKey] = $objModel;
 		}
 		elseif ($arrRelation['type'] == 'hasMany' || $arrRelation['type'] == 'belongsToMany')
 		{
+			/** @var static $strClass */
+			$strClass = static::getClassFromTable($arrRelation['table']);
+
 			$arrValues = deserialize($this->$strKey, true);
 			$strField = $arrRelation['table'] . '.' . $arrRelation['field'];
 
