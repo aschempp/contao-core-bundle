@@ -13,7 +13,11 @@ use Doctrine\DBAL\Schema\Table;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\Mapping\Driver\DatabaseDriver;
 
-
+/**
+ * ContaoModelDriver registers Doctrine metadata for Contao models.
+ *
+ * @author Andreas Schempp <https://github.com/aschempp>
+ */
 class ContaoModelDriver implements MappingDriver
 {
     /**
@@ -52,14 +56,12 @@ class ContaoModelDriver implements MappingDriver
     /**
      * Loads the metadata for the specified class into the provided container.
      *
-     * @param string        $className
-     * @param ClassMetadata $metadata
-     *
-     * @return void
+     * @param string                          $className
+     * @param ClassMetadata|ClassMetadataInfo $metadata
      */
     public function loadMetadataForClass($className, ClassMetadata $metadata)
     {
-        $this->loadMappingFromDatabase();
+        $this->registerDatabaseDriver();
 
         $this->driver->loadMetadataForClass($className, $metadata);
 
@@ -75,26 +77,24 @@ class ContaoModelDriver implements MappingDriver
      */
     public function getAllClassNames()
     {
-        $this->loadMappingFromDatabase();
+        $this->registerDatabaseDriver();
 
         return $this->driver->getAllClassNames();
     }
 
     /**
-     * Returns whether the class with the specified name should have its metadata loaded.
-     * This is only the case if it is either mapped as an Entity or a MappedSuperclass.
-     *
-     * @param string $className
-     *
-     * @return boolean
+     * @inheritdoc
      */
     public function isTransient($className)
     {
         return true;
     }
 
-
-    private function loadMappingFromDatabase()
+    /**
+     * Registers tables for Contao models in a DatabaseDriver.
+     * The DatabaseDriver is then used to load basic information from DB definition.
+     */
+    private function registerDatabaseDriver()
     {
         if (null !== $this->driver) {
             return;
@@ -123,6 +123,9 @@ class ContaoModelDriver implements MappingDriver
         $this->driver->setTables($this->tables, []);
     }
 
+    /**
+     * @param ClassMetadataInfo $metadata
+     */
     private function loadRelationsFromDca(ClassMetadataInfo $metadata)
     {
         $tableName = $metadata->getTableName();
@@ -133,7 +136,7 @@ class ContaoModelDriver implements MappingDriver
             && !isset($relations['pid'])
             && ($targetEntity = $this->getModelNameForTable($dca['config']['ptable'])) !== null
         ) {
-            // $tableName.pid hat ManyToOne relation auf $ptable.id
+            // $tableName.pid has ManyToOne relation to $ptable.id
 
             $metadata->mapManyToOne([
                 'fieldName'    => 'relation(ptable)',
@@ -154,7 +157,7 @@ class ContaoModelDriver implements MappingDriver
 
         if (is_array($dca['config']['ctable'])) {
             foreach ($dca['config']['ctable'] as $ctable) {
-                // $tableName.id hat OneToMany auf $ctable.pid
+                // $tableName.id has OneToMany to $ctable.pid
 
                 if (($targetEntity = $this->getModelNameForTable($ctable)) !== null) {
                     $metadata->mapOneToMany([
@@ -171,7 +174,7 @@ class ContaoModelDriver implements MappingDriver
         }
 
         foreach ($relations as $field => $relation) {
-            // $tableName.$field has $relation['type'] relation to $relation['table'][$relation['field']]
+            // $tableName.$field has $relation['type'] relation to $relation['table'].$relation['field']
 
             if (($relation['type'] == 'hasOne' || $relation['type'] == 'belongsTo')
                 && ($targetEntity = $this->getModelNameForTable($relation['table'])) !== null
@@ -195,7 +198,13 @@ class ContaoModelDriver implements MappingDriver
         }
     }
 
-
+    /**
+     * Returns the FQCN of the Contao model for a table name or null if not found.
+     *
+     * @param string $tableName
+     *
+     * @return null|string
+     */
     private function getModelNameForTable($tableName)
     {
         /** @var \Contao\Model $adapter */
