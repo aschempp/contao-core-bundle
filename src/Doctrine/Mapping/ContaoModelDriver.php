@@ -144,21 +144,28 @@ class ContaoModelDriver implements MappingDriver
         ) {
             // $tableName.pid has ManyToOne relation to $ptable.id
 
-            $metadata->mapManyToOne([
-                'fieldName'    => 'relation(ptable)',
-                'joinColumns'  => [[
-                    'name'                 => 'pid',
-                    'unique'               => false,
-                    'nullable'             => false,
-                    'onDelete'             => null,
-                    'columnDefinition'     => null,
-                    'referencedColumnName' => 'id',
-                ]],
-                'cascade'      => [],
-                'inversedBy'   => $dca['config']['ptable'],
-                'targetEntity' => $targetEntity,
-                'fetch'        => ClassMetadataInfo::FETCH_LAZY
-            ]);
+            $this->mapManyToOne(
+                $metadata,
+                'pid',
+                'id',
+                $dca['config']['ptable'],
+                $targetEntity
+            );
+
+        } elseif (!$dca['config']['ptable']
+            && !isset($relations['pid'])
+            && $dca['config']['mode'] == 5
+            && ($targetEntity = $this->getModelNameForTable($tableName)) !== null
+        ) {
+            // $tableName.pid has ManyToOne relation to $tableName.id
+
+            $this->mapManyToOne(
+                $metadata,
+                'pid',
+                'id',
+                $tableName,
+                $targetEntity
+            );
         }
 
         if (is_array($dca['config']['ctable'])) {
@@ -166,15 +173,12 @@ class ContaoModelDriver implements MappingDriver
                 // $tableName.id has OneToMany to $ctable.pid
 
                 if (($targetEntity = $this->getModelNameForTable($ctable)) !== null) {
-                    $metadata->mapOneToMany([
-                        'fieldName'     => "relation(ctable=$ctable)",
-                        'mappedBy'      => 'pid',
-                        'targetEntity'  => $targetEntity,
-                        'cascade'       => [],
-                        'indexBy'       => null,
-                        'orphanRemoval' => false,
-                        'fetch'         => ClassMetadataInfo::FETCH_LAZY,
-                    ]);
+                    $this->mapOneToMany(
+                        $metadata,
+                        'pid',
+                        $ctable,
+                        $targetEntity
+                    );
                 }
             }
         }
@@ -185,21 +189,13 @@ class ContaoModelDriver implements MappingDriver
             if (($relation['type'] == 'hasOne' || $relation['type'] == 'belongsTo')
                 && ($targetEntity = $this->getModelNameForTable($relation['table'])) !== null
             ) {
-                $metadata->mapManyToOne([
-                    'fieldName'    => "relation(field=$field)",
-                    'joinColumns'  => [[
-                        'name'                 => $field,
-                        'unique'               => false,
-                        'nullable'             => false,
-                        'onDelete'             => null,
-                        'columnDefinition'     => null,
-                        'referencedColumnName' => $relation['field'],
-                    ]],
-                    'cascade'      => [],
-                    'inversedBy'   => $relation['table'],
-                    'targetEntity' => $targetEntity,
-                    'fetch'        => ClassMetadataInfo::FETCH_LAZY
-                ]);
+                $this->mapManyToOne(
+                    $metadata,
+                    $field,
+                    $relation['field'],
+                    $relation['table'],
+                    $targetEntity
+                );
             }
         }
     }
@@ -222,5 +218,61 @@ class ContaoModelDriver implements MappingDriver
         }
 
         return $class;
+    }
+
+    /**
+     * @param ClassMetadataInfo $metadata
+     * @param string            $targetColumn
+     * @param string            $targetTable
+     * @param string            $targetEntity
+     */
+    private function mapOneToMany(
+        ClassMetadataInfo $metadata,
+        $targetColumn,
+        $targetTable,
+        $targetEntity
+    ) {
+        $metadata->mapOneToMany([
+            'fieldName'     => "relation(table=$targetTable)",
+            'mappedBy'      => "relation(field=$targetColumn)",
+            'targetEntity'  => $targetEntity,
+            'cascade'       => [],
+            'indexBy'       => null,
+            'orphanRemoval' => false,
+            'fetch'         => ClassMetadataInfo::FETCH_LAZY,
+        ]);
+    }
+
+    /**
+     * @param ClassMetadataInfo $metadata
+     * @param string            $field
+     * @param string            $targetColumn
+     * @param string            $targetTable
+     * @param string            $targetEntity
+     */
+    private function mapManyToOne(
+        ClassMetadataInfo $metadata,
+        $field,
+        $targetColumn,
+        $targetTable,
+        $targetEntity
+    ) {
+        $metadata->mapManyToOne([
+            'fieldName'    => "relation(field=$field)",
+            'joinColumns'  => [
+                [
+                    'name'                 => $field,
+                    'unique'               => false,
+                    'nullable'             => false,
+                    'onDelete'             => null,
+                    'columnDefinition'     => null,
+                    'referencedColumnName' => $targetColumn,
+                ]
+            ],
+            'cascade'      => [],
+            'inversedBy'   => '', //"relation(table=$targetTable)",
+            'targetEntity' => $targetEntity,
+            'fetch'        => ClassMetadataInfo::FETCH_LAZY
+        ]);
     }
 }
