@@ -153,6 +153,7 @@ class ContaoModelDriver implements MappingDriver
         $relations = $extractor->getInstance($tableName)->getRelations();
 
         if ($dca['config']['ptable']
+            && !$dca['config']['dynamicPtable']
             && !isset($relations['pid'])
             && ($targetEntity = $this->getModelNameForTable($dca['config']['ptable'])) !== null
         ) {
