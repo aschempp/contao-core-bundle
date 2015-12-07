@@ -92,7 +92,7 @@ class ContaoModelDriver implements MappingDriver
      */
     public function isTransient($className)
     {
-        return !$this->loaded[$className] && is_a($className, '\Contao\Model', true);
+        return !$this->loaded[$className] && '\Contao\Model' !== $className && is_a($className, '\Contao\Model', true);
     }
 
     /**
