@@ -15,6 +15,7 @@ use Contao\CoreBundle\DependencyInjection\Compiler\AddResourcesPathsPass;
 use Contao\CoreBundle\DependencyInjection\Compiler\DoctrineMappingDriverPass;
 use Contao\CoreBundle\DependencyInjection\ContaoCoreExtension;
 use Contao\CoreBundle\Doctrine\Mapping\ContaoModelRuntimeReflectionService;
+use Doctrine\DBAL\Types\Type;
 use Patchwork\Utf8\Bootup;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Scope;
@@ -48,6 +49,14 @@ class ContaoCoreBundle extends Bundle
 
         $this->container->addScope(new Scope(self::SCOPE_BACKEND, 'request'));
         $this->container->addScope(new Scope(self::SCOPE_FRONTEND, 'request'));
+
+        if (!Type::hasType('uuid')) {
+            Type::addType('uuid', 'Contao\CoreBundle\Doctrine\DBAL\Types\UuidType');
+        }
+
+        if (!Type::hasType('uuid_array')) {
+            Type::addType('uuid_array', 'Contao\CoreBundle\Doctrine\DBAL\Types\UuidArrayType');
+        }
 
         $this->container
             ->get('doctrine.orm.entity_manager')
