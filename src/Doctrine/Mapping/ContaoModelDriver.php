@@ -161,8 +161,8 @@ class ContaoModelDriver implements MappingDriver
             $this->mapManyToOne(
                 $metadata,
                 'pid',
+                $tableName,
                 'id',
-                $dca['config']['ptable'],
                 $targetEntity
             );
 
@@ -176,8 +176,8 @@ class ContaoModelDriver implements MappingDriver
             $this->mapManyToOne(
                 $metadata,
                 'pid',
-                'id',
                 $tableName,
+                'id',
                 $targetEntity
             );
         }
@@ -206,8 +206,8 @@ class ContaoModelDriver implements MappingDriver
                 $this->mapManyToOne(
                     $metadata,
                     $field,
+                    $tableName,
                     $relation['field'],
-                    $relation['table'],
                     $targetEntity
                 );
             }
@@ -299,17 +299,17 @@ class ContaoModelDriver implements MappingDriver
      * @param ClassMetadataInfo $metadata
      * @param string            $field
      * @param string            $targetColumn
-     * @param string            $targetTable
+     * @param string            $table
      * @param string            $targetEntity
      */
     private function mapManyToOne(
         ClassMetadataInfo $metadata,
         $field,
+        $table,
         $targetColumn,
-        $targetTable,
         $targetEntity
     ) {
-        $metadata->mapManyToOne([
+        $data = [
             'fieldName'    => "relation(field=$field)",
             'joinColumns'  => [
                 [
@@ -322,9 +322,14 @@ class ContaoModelDriver implements MappingDriver
                 ]
             ],
             'cascade'      => [],
-            'inversedBy'   => '', //"relation(table=$targetTable)",
             'targetEntity' => $targetEntity,
             'fetch'        => ClassMetadataInfo::FETCH_LAZY
-        ]);
+        ];
+
+        if ('pid' === $field) {
+            $data['inversedBy'] = "relation(table=$table)";
+        }
+
+        $metadata->mapManyToOne($data);
     }
 }
