@@ -39,11 +39,6 @@ class ContaoModelDriver implements MappingDriver
     private $driver;
 
     /**
-     * @var array
-     */
-    private $loaded = [];
-
-    /**
      * Constructor.
      *
      * @param ContaoFrameworkInterface $framework
@@ -71,8 +66,6 @@ class ContaoModelDriver implements MappingDriver
         $metadata->markReadOnly();
 
         $this->loadRelationsFromDca($metadata);
-
-        $this->loaded[$className] = true;
     }
 
     /**
@@ -92,7 +85,7 @@ class ContaoModelDriver implements MappingDriver
      */
     public function isTransient($className)
     {
-        return !$this->loaded[$className] && '\Contao\Model' !== $className && is_a($className, '\Contao\Model', true);
+        return !is_subclass_of($className, '\Contao\Model', true);
     }
 
     /**
