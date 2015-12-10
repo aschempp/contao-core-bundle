@@ -97,7 +97,7 @@ abstract class Model
 	 * Relations
 	 * @var array
 	 */
-	protected $arrRelations = array();
+	protected $arrRelations;
 
 	/**
 	 * Related
@@ -121,8 +121,7 @@ abstract class Model
 	{
 		$this->arrModified = array();
 
-		$objDca = \DcaExtractor::getInstance(static::$strTable);
-		$this->arrRelations = $objDca->getRelations();
+		$this->initializeRelations();
 
 		if ($objResult !== null)
 		{
@@ -663,6 +662,8 @@ abstract class Model
 	 */
 	public function getRelated($strKey, array $arrOptions=array())
 	{
+		$this->initializeRelations();
+
 		// The related model has been loaded before
 		if (array_key_exists($strKey, $this->arrRelated))
 		{
@@ -835,6 +836,21 @@ abstract class Model
 	{
 		$this->detach($blnKeepClone);
 		$this->blnPreventSaving = true;
+	}
+
+
+	/**
+	 * Lazy-load DCA relations if not loaded before
+	 */
+	private function initializeRelations()
+	{
+		if ($this->arrRelations !== null)
+		{
+			return;
+		}
+
+		$objDca = \DcaExtractor::getInstance(static::$strTable);
+		$this->arrRelations = $objDca->getRelations();
 	}
 
 
