@@ -667,7 +667,22 @@ abstract class Model
 		// The related model has been loaded before
 		if (array_key_exists($strKey, $this->arrRelated))
 		{
-			return $this->arrRelated[$strKey];
+			$objModel = $this->arrRelated[$strKey];
+
+			if ($objModel instanceof Proxy)
+			{
+				try
+				{
+					$objModel->__load();
+				}
+				catch (EntityNotFoundException $e)
+				{
+					unset($this->arrRelated);
+					$objModel = null;
+				}
+			}
+
+			return $objModel;
 		}
 
 		// The relation does not exist
@@ -684,26 +699,17 @@ abstract class Model
 
 		$arrRelation = $this->arrRelations[$strKey];
 
+		/** @var static $strClass */
+		$strClass = static::getClassFromTable($arrRelation['table']);
+
 		// Load the related record(s)
 		if ($arrRelation['type'] == 'hasOne' || $arrRelation['type'] == 'belongsTo')
 		{
-			$objModel = $this->arrData['relation(field=' . $strKey . ')'];
-
-			if ($objModel instanceof Proxy) {
-				try {
-					$objModel->__load();
-				} catch (EntityNotFoundException $e) {
-					$objModel = null;
-				}
-			}
-
+			$objModel = $strClass::findOneBy($arrRelation['field'], $this->$strKey, $arrOptions);
 			$this->arrRelated[$strKey] = $objModel;
 		}
 		elseif ($arrRelation['type'] == 'hasMany' || $arrRelation['type'] == 'belongsToMany')
 		{
-			/** @var static $strClass */
-			$strClass = static::getClassFromTable($arrRelation['table']);
-
 			$arrValues = deserialize($this->$strKey, true);
 			$strField = $arrRelation['table'] . '.' . $arrRelation['field'];
 

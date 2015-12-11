@@ -8,9 +8,13 @@ class ContaoModelReflectionProperty extends \ReflectionProperty
 
     public function __construct($class, $name)
     {
-        $this->key = $name;
-
-        parent::__construct($class, 'arrData');
+        if (0 === strpos($name, 'relation(field=')) {
+            $this->key = substr($name, 15, -1);
+            parent::__construct($class, 'arrRelated');
+        } else {
+            $this->key = $name;
+            parent::__construct($class, 'arrData');
+        }
 
         $this->setAccessible(true);
     }
