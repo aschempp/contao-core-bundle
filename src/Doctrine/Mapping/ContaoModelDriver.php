@@ -59,6 +59,11 @@ class ContaoModelDriver implements MappingDriver
      */
     public function loadMetadataForClass($className, ClassMetadata $metadata)
     {
+        // Make sure we only load Contao models
+        if ($this->isTransient($className)) {
+            return;
+        }
+
         $this->registerDatabaseDriver();
 
         $this->driver->loadMetadataForClass($className, $metadata);
