@@ -118,9 +118,15 @@ class ContaoModelDriver implements MappingDriver
                 continue;
             }
 
-            $this->driver->setClassNameForTable($tableName, $class);
+            $table = $schemaManager->listTableDetails($tableName);
 
-            $this->tables[$tableName] = $schemaManager->listTableDetails($tableName);
+            // Table must have primary key or it cannot be handled by Doctrine
+            if (!$table->hasPrimaryKey()) {
+                continue;
+            }
+
+            $this->driver->setClassNameForTable($tableName, $class);
+            $this->tables[$tableName] = $table;
 
             foreach ($schemaManager->listTableColumns($tableName) as $column) {
                 $name = $column->getName();
