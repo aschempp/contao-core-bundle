@@ -208,6 +208,13 @@ class ContaoModelDriver implements MappingDriver
             if (($relation['type'] == 'hasOne' || $relation['type'] == 'belongsTo')
                 && ($targetEntity = $this->getModelNameForTable($relation['table'])) !== null
             ) {
+                // TODO: Doctrine does not support relation on non-PK field
+                // @see https://github.com/doctrine/doctrine2/issues/5552
+                /** @var \Contao\Model $targetEntity */
+                if ($relation['field'] !== $targetEntity::getPk()) {
+                    continue;
+                }
+
                 $this->mapManyToOne(
                     $metadata,
                     $field,
