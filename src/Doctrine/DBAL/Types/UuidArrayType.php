@@ -35,6 +35,10 @@ class UuidArrayType extends BlobType
         }
 
         foreach ($value as $k => $v) {
+            if (16 !== strlen($v) || ($v & hex2bin('000000000000F000C000000000000000')) !== hex2bin('00000000000010008000000000000000')) {
+                continue;
+            }
+
             $value[$k] = implode('-', unpack('H8time_low/H4time_mid/H4time_high/H4clock_seq/H12node', $v));
         }
 
@@ -55,6 +59,10 @@ class UuidArrayType extends BlobType
         }
 
         foreach ($value as $k => $v) {
+            if (36 !== strlen($v) || !preg_match('/^[a-f0-9]{8}-[a-f0-9]{4}-1[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/', $v)) {
+                continue;
+            }
+
             $value[$k] = hex2bin(str_replace('-', '', $v));
         }
 
