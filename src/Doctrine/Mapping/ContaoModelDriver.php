@@ -227,6 +227,11 @@ class ContaoModelDriver implements MappingDriver
 
         if (is_array($dca['fields'])) {
             foreach ($dca['fields'] as $field => $config) {
+                if (isset($config['doctrine']['type'])) {
+                    $metadata->fieldMappings[$field]['type'] = $config['doctrine']['type'];
+                    continue;
+                }
+
                 if (Type::BLOB === $metadata->fieldMappings[$field]['type']) {
                     if ($config['eval']['multiple'] && !isset($config['eval']['csv'])) {
                         $metadata->fieldMappings[$field]['type'] = Type::TARRAY;
