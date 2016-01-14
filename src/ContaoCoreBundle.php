@@ -47,13 +47,7 @@ class ContaoCoreBundle extends Bundle
     {
         Bootup::initAll();
 
-        if (!Type::hasType('uuid')) {
-            Type::addType('uuid', 'Contao\CoreBundle\Doctrine\DBAL\Types\UuidType');
-        }
-
-        if (!Type::hasType('uuid_array')) {
-            Type::addType('uuid_array', 'Contao\CoreBundle\Doctrine\DBAL\Types\UuidArrayType');
-        }
+        $this->addDoctrineTypes();
 
         $this->container
             ->get('doctrine.orm.entity_manager')
@@ -71,6 +65,8 @@ class ContaoCoreBundle extends Bundle
     {
         parent::build($container);
 
+        $this->addDoctrineTypes();
+
         $container->addCompilerPass(
             new AddPackagesPass($container->getParameter('kernel.root_dir') . '/../vendor/composer/installed.json')
         );
@@ -78,5 +74,19 @@ class ContaoCoreBundle extends Bundle
         $container->addCompilerPass(new AddSessionBagsPass());
         $container->addCompilerPass(new AddResourcesPathsPass());
         $container->addCompilerPass(new DoctrineMappingDriverPass());
+    }
+
+    /**
+     * Registers custom Doctrine types if necessary
+     */
+    private function addDoctrineTypes()
+    {
+        if (!Type::hasType('uuid')) {
+            Type::addType('uuid', 'Contao\CoreBundle\Doctrine\DBAL\Types\UuidType');
+        }
+
+        if (!Type::hasType('uuid_array')) {
+            Type::addType('uuid_array', 'Contao\CoreBundle\Doctrine\DBAL\Types\UuidArrayType');
+        }
     }
 }
