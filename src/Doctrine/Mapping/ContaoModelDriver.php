@@ -211,7 +211,7 @@ class ContaoModelDriver implements MappingDriver
         foreach ($relations as $field => $relation) {
             // $tableName.$field has $relation['type'] relation to $relation['table'].$relation['field']
 
-            if (($relation['type'] == 'hasOne' || $relation['type'] == 'belongsTo')
+            if (('hasOne' === $relation['type'] || 'belongsTo' === $relation['type'])
                 && ($targetEntity = $this->getModelNameForTable($relation['table'])) !== null
             ) {
                 // TODO: Doctrine does not support relation on non-PK field
