@@ -191,7 +191,13 @@ class ContaoModelDriver implements MappingDriver
             foreach ($dca['config']['ctable'] as $ctable) {
                 // $tableName.id has OneToMany to $ctable.pid
 
-                if (($targetEntity = $this->getModelNameForTable($ctable)) !== null) {
+                /** @var \Contao\DcaLoader $ctableLoader */
+                $ctableLoader = $this->framework->createInstance('Contao\DcaLoader', [$ctable]);
+                $ctableLoader->load();
+
+                if (!$GLOBALS['TL_DCA'][$ctable]['config']['dynamicPtable']
+                    && ($targetEntity = $this->getModelNameForTable($ctable)) !== null
+                ) {
                     $this->mapOneToMany(
                         $metadata,
                         'pid',
