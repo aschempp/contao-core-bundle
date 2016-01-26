@@ -105,11 +105,16 @@ class ContaoModelDriver implements MappingDriver
 
         $this->framework->initialize();
 
+        $schemaFilter  = $this->connection->getConfiguration()->getFilterSchemaAssetsExpression();
         $schemaManager = $this->connection->getSchemaManager();
         $this->tables  = [];
 
         $this->driver  = new DatabaseDriver($schemaManager);
         $this->driver->setNamespace('');
+
+        if (null !== $schemaFilter) {
+            $this->connection->getConfiguration()->setFilterSchemaAssetsExpression(null);
+        }
 
         foreach ($schemaManager->listTableNames() as $tableName) {
             $class = $this->getModelNameForTable($tableName);
@@ -135,6 +140,10 @@ class ContaoModelDriver implements MappingDriver
         }
 
         $this->driver->setTables($this->tables, []);
+
+        if (null !== $schemaFilter) {
+            $this->connection->getConfiguration()->setFilterSchemaAssetsExpression($schemaFilter);
+        }
     }
 
     /**
