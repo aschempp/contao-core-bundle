@@ -82,7 +82,7 @@ services:
             - { name: monolog.processor }
 
     contao.orm.model_mapping_driver:
-        class: "Contao\CoreBundle\Doctrine\Mapping\ContaoModelDriver"
+        class: Contao\CoreBundle\Doctrine\Mapping\ContaoModelDriver
         arguments:
             - "@contao.framework"
             - "@database_connection"
