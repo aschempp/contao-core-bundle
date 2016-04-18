@@ -140,6 +140,7 @@ $GLOBALS['TL_DCA']['tl_files'] = array
 		),
 		'uuid' => array
 		(
+			'doctrine'				  => array('type' => \Contao\CoreBundle\Doctrine\DBAL\Types\UuidType::UUID),
 			'sql'                     => "binary(16) NULL"
 		),
 		'type' => array

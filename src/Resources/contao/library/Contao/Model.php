@@ -10,6 +10,10 @@
 
 namespace Contao;
 
+use Doctrine\ORM\EntityNotFoundException;
+use Doctrine\ORM\Proxy\Proxy;
+use Doctrine\ORM\Query;
+
 
 /**
  * Reads objects from and writes them to to the database
@@ -72,6 +76,12 @@ abstract class Model
 	protected static $arrClassNames = array();
 
 	/**
+	 * Fully qualified class names
+	 * @var array
+	 */
+	protected static $arrFQClassNames = array();
+
+	/**
 	 * Data
 	 * @var array
 	 */
@@ -87,7 +97,7 @@ abstract class Model
 	 * Relations
 	 * @var array
 	 */
-	protected $arrRelations = array();
+	protected $arrRelations;
 
 	/**
 	 * Related
@@ -111,8 +121,7 @@ abstract class Model
 	{
 		$this->arrModified = array();
 
-		$objDca = \DcaExtractor::getInstance(static::$strTable);
-		$this->arrRelations = $objDca->getRelations();
+		$this->initializeRelations();
 
 		if ($objResult !== null)
 		{
@@ -137,6 +146,7 @@ abstract class Model
 			}
 
 			$objRegistry = \Model\Registry::getInstance();
+			$uow = System::getContainer()->get('doctrine.orm.entity_manager')->getUnitOfWork();
 
 			// Create the related models
 			foreach ($arrRelated as $key=>$row)
@@ -167,6 +177,16 @@ abstract class Model
 						$objRelated->setRow($row);
 
 						$objRegistry->register($objRelated);
+
+						$uow->registerManaged($objRelated, array($objRelated->getPk() => $objRelated->{$objRelated->getPk()}), $row);
+
+						$hints = array
+						(
+								Query::HINT_REFRESH => true,
+								Query::HINT_REFRESH_ENTITY => $objRelated,
+						);
+
+						$uow->createEntity(get_class($objRelated), $row, $hints);
 					}
 
 					$this->arrRelated[$key] = $objRelated;
@@ -175,6 +195,16 @@ abstract class Model
 
 			$this->setRow($arrData); // see #5439
 			$objRegistry->register($this);
+
+			$uow->registerManaged($this, array($this->getPk() => $this->{$this->getPk()}), $arrData);
+
+			$hints = array
+			(
+					Query::HINT_REFRESH => true,
+					Query::HINT_REFRESH_ENTITY => $this,
+			);
+
+			$uow->createEntity(get_called_class(), $arrData, $hints);
 		}
 	}
 
@@ -357,6 +387,19 @@ abstract class Model
 
 		$this->arrData = $arrData;
 
+		$uow = System::getContainer()->get('doctrine.orm.entity_manager')->getUnitOfWork();
+
+		if ($uow->isInIdentityMap($this))
+		{
+			$hints = array
+			(
+					Query::HINT_REFRESH        => true,
+					Query::HINT_REFRESH_ENTITY => $this,
+			);
+
+			$uow->createEntity(get_called_class(), $arrData, $hints);
+		}
+
 		return $this;
 	}
 
@@ -381,6 +424,19 @@ abstract class Model
 			{
 				$this->arrData[$k] = $v;
 			}
+		}
+
+		$uow = System::getContainer()->get('doctrine.orm.entity_manager')->getUnitOfWork();
+
+		if ($uow->isInIdentityMap($this))
+		{
+			$hints = array
+			(
+				Query::HINT_REFRESH => true,
+				Query::HINT_REFRESH_ENTITY => $this,
+			);
+
+			$uow->createEntity(get_called_class(), $arrData, $hints);
 		}
 
 		return $this;
@@ -514,6 +570,17 @@ abstract class Model
 			$this->arrModified = array(); // reset after postSave()
 
 			\Model\Registry::getInstance()->register($this);
+
+			$uow = System::getContainer()->get('doctrine.orm.entity_manager')->getUnitOfWork();
+			$uow->registerManaged($this, array($this->getPk() => $this->{$this->getPk()}), $this->arrData);
+
+			$hints = array
+			(
+					Query::HINT_REFRESH => true,
+					Query::HINT_REFRESH_ENTITY => $this,
+			);
+
+			$uow->createEntity(get_called_class(), $this->arrData, $hints);
 		}
 
 		return $this;
@@ -572,6 +639,9 @@ abstract class Model
 			// Unregister the model
 			\Model\Registry::getInstance()->unregister($this);
 
+			$uow = System::getContainer()->get('doctrine.orm.entity_manager')->getUnitOfWork();
+			$uow->detach($this);
+
 			// Remove the primary key (see #6162)
 			$this->arrData[static::$strPk] = null;
 		}
@@ -592,10 +662,27 @@ abstract class Model
 	 */
 	public function getRelated($strKey, array $arrOptions=array())
 	{
+		$this->initializeRelations();
+
 		// The related model has been loaded before
 		if (array_key_exists($strKey, $this->arrRelated))
 		{
-			return $this->arrRelated[$strKey];
+			$objModel = $this->arrRelated[$strKey];
+
+			if ($objModel instanceof Proxy)
+			{
+				try
+				{
+					$objModel->__load();
+				}
+				catch (EntityNotFoundException $e)
+				{
+					unset($this->arrRelated);
+					$objModel = null;
+				}
+			}
+
+			return $objModel;
 		}
 
 		// The relation does not exist
@@ -684,6 +771,9 @@ abstract class Model
 	{
 		\Model\Registry::getInstance()->unregister($this);
 
+		$uow = System::getContainer()->get('doctrine.orm.entity_manager')->getUnitOfWork();
+		$uow->detach($this);
+
 		if ($blnKeepClone)
 		{
 			$this->cloneOriginal()->attach();
@@ -697,6 +787,9 @@ abstract class Model
 	public function attach()
 	{
 		\Model\Registry::getInstance()->register($this);
+
+		$uow = System::getContainer()->get('doctrine.orm.entity_manager')->getUnitOfWork();
+		$uow->registerManaged($this, array($this->getPk() => $this->{$this->getPk()}), $this->arrData);
 	}
 
 
@@ -749,6 +842,21 @@ abstract class Model
 	{
 		$this->detach($blnKeepClone);
 		$this->blnPreventSaving = true;
+	}
+
+
+	/**
+	 * Lazy-load DCA relations if not loaded before
+	 */
+	private function initializeRelations()
+	{
+		if ($this->arrRelations !== null)
+		{
+			return;
+		}
+
+		$objDca = \DcaExtractor::getInstance(static::$strTable);
+		$this->arrRelations = $objDca->getRelations();
 	}
 
 
@@ -1185,8 +1293,28 @@ abstract class Model
 	 *
 	 * @return string The model class name
 	 */
-	public static function getClassFromTable($strTable)
+	public static function getClassFromTable($strTable, $fqcn = false)
 	{
+		if ($fqcn)
+		{
+			if (isset(static::$arrFQClassNames[$strTable]))
+			{
+				return static::$arrFQClassNames[$strTable];
+			}
+
+			$strClass = static::getClassFromTable($strTable);
+
+			try {
+				$objRefl = new \ReflectionClass($strClass);
+				static::$arrFQClassNames[$strTable] = $objRefl->name;
+
+			} catch (\ReflectionException $e) {
+				static::$arrFQClassNames[$strTable] = $strClass;
+			}
+
+			return static::$arrFQClassNames[$strTable];
+		}
+
 		if (isset(static::$arrClassNames[$strTable]))
 		{
 			return static::$arrClassNames[$strTable];

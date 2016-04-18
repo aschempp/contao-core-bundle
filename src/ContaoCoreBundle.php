@@ -13,7 +13,10 @@ namespace Contao\CoreBundle;
 use Contao\CoreBundle\DependencyInjection\Compiler\AddPackagesPass;
 use Contao\CoreBundle\DependencyInjection\Compiler\AddResourcesPathsPass;
 use Contao\CoreBundle\DependencyInjection\Compiler\AddSessionBagsPass;
+use Contao\CoreBundle\DependencyInjection\Compiler\DoctrineMappingDriverPass;
 use Contao\CoreBundle\DependencyInjection\ContaoCoreExtension;
+use Contao\CoreBundle\Doctrine\Mapping\ContaoModelRuntimeReflectionService;
+use Doctrine\DBAL\Types\Type;
 use Patchwork\Utf8\Bootup;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
@@ -43,6 +46,16 @@ class ContaoCoreBundle extends Bundle
     public function boot()
     {
         Bootup::initAll();
+
+        $this->addDoctrineTypes();
+
+        $this->container
+            ->get('doctrine.orm.entity_manager')
+            ->getMetadataFactory()
+            ->setReflectionService(
+                new ContaoModelRuntimeReflectionService($this->container->get('contao.framework'))
+            )
+        ;
     }
 
     /**
@@ -52,11 +65,28 @@ class ContaoCoreBundle extends Bundle
     {
         parent::build($container);
 
+        $this->addDoctrineTypes();
+
         $container->addCompilerPass(
             new AddPackagesPass($container->getParameter('kernel.root_dir') . '/../vendor/composer/installed.json')
         );
 
         $container->addCompilerPass(new AddSessionBagsPass());
         $container->addCompilerPass(new AddResourcesPathsPass());
+        $container->addCompilerPass(new DoctrineMappingDriverPass());
+    }
+
+    /**
+     * Registers custom Doctrine types if necessary
+     */
+    private function addDoctrineTypes()
+    {
+        if (!Type::hasType('uuid')) {
+            Type::addType('uuid', 'Contao\CoreBundle\Doctrine\DBAL\Types\UuidType');
+        }
+
+        if (!Type::hasType('uuid_array')) {
+            Type::addType('uuid_array', 'Contao\CoreBundle\Doctrine\DBAL\Types\UuidArrayType');
+        }
     }
 }
