@@ -1095,24 +1095,27 @@ abstract class Controller extends \System
 		}
 
 		// Set the language
-		if ($strForceLang != '')
+		if (System::getContainer()->getParameter('contao.prepend_locale'))
 		{
-			$arrParams['_locale'] = $strForceLang;
-		}
-		elseif (isset($arrRow['rootLanguage']))
-		{
-			$arrParams['_locale'] = $arrRow['rootLanguage'];
-		}
-		elseif (isset($arrRow['language']) && $arrRow['type'] == 'root')
-		{
-			$arrParams['_locale'] = $arrRow['language'];
-		}
-		elseif (TL_MODE == 'FE')
-		{
-			/** @var PageModel $objPage */
-			global $objPage;
+			if ($strForceLang != '')
+			{
+				$arrParams['_locale'] = $strForceLang;
+			}
+			elseif (isset($arrRow['rootLanguage']))
+			{
+				$arrParams['_locale'] = $arrRow['rootLanguage'];
+			}
+			elseif (isset($arrRow['language']) && $arrRow['type'] == 'root')
+			{
+				$arrParams['_locale'] = $arrRow['language'];
+			}
+			elseif (TL_MODE == 'FE')
+			{
+				/** @var PageModel $objPage */
+				global $objPage;
 
-			$arrParams['_locale'] = $objPage->rootLanguage;
+				$arrParams['_locale'] = $objPage->rootLanguage;
+			}
 		}
 
 		$strUrl = $objRouter->generate($strRoute, $arrParams);
