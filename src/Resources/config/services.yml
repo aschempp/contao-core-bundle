@@ -36,6 +36,7 @@ services:
             - "@contao.framework"
             - "@database_connection"
             - "@request_stack"
+            - "%contao.root_dir%"
 
     contao.cors_website_roots_config_provider:
         class: Contao\CoreBundle\Cors\WebsiteRootsConfigProvider
